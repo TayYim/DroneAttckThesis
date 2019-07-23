@@ -30,7 +30,7 @@
 
 \begin{document}
 
-\title{Title!!!!!!!!!}
+\title{Attack On Drones}
 %
 % You need the command \numberofauthors to handle the 'placement
 % and alignment' of the authors beneath the title.
@@ -185,11 +185,20 @@ After booting up, the drone will set up a Wi-Fi hotspot named "ardrone2\_" follo
 
 Once the connection has been built, attacker can scan the subnetwork to determine the IP address of the control device.
 
-To prevent multiple phones trying to control the drone, the drone only accepts packets from the source IP of the controller. But since it's UDP, it's simple to spoof the IP address of the controller. Attacker can send a land command to force the drone to come to the ground.\cite{drone:python}
+To prevent multiple phones trying to control the drone, the drone only accepts packets from the source IP of the controller. But since it's UDP, it's simple to spoof the IP address of the controller. Attacker can send a land command to force the drone to come to the ground.\cite{drone:python} 
+
+
 
 \subsubsection{Using Android Device to Conduct Attack}
 
-After the previous analysis, we have mastered the WIFI-controlled drone attack method and the whole process. The drone uses the application(FreeFlight 2.0) to control takeoff, landing, flight direction and capture image acquisition. We decided to create another Android application to attack this drone. Then this application can be controlled by a third party and take control of the drone, force the drone to land, and modify the flight direction.
+After the previous analysis, we have mastered the WIFI-controlled drone attack method and the whole process. The drone uses the application(FreeFlight 2.0) to control takeoff, landing, flight direction and capture image acquisition. We decided to create another Android application to attack this drone. Then this application can be controlled by a third party and take control of the drone, force the drone to land, and modify the flight direction.This attack scenario is shown in Figure\ref{hijack}.
+
+\begin{figure}
+\centering
+\label{hijack}
+\epsfig{file=figures/Hijack.png, height=1.6in, width=2.5in}
+\caption{Hijack Attack Scenario}
+\end{figure}
 
 The attack consists of the following phases:
 
@@ -200,15 +209,28 @@ The attack consists of the following phases:
 
 Jpcap provides a class JpcapSender for sending packets, which can be used to send IPPackets and its subclasses, including IPPacket, ICMPPacket, TCPPacket, UDPPacket\cite{jpcap}. After defining a corresponding package, we can use the SendPacket function to send packets. Meanwhile, Jpcap can be used to construct IP data packets to implement sending fake IP.
 
-The creation of this new Android app is primarily convenient for any third-party user who can hijack drones directly at the application layer.
+The creation of this new Android app is primarily convenient for any third-party user who can hijack drones directly at the application layer.
 
-\section{Attack on hubsan blablabla}
+\section{Attack on Hubsan H107}
 
-//TODO
+\subsection{Communication Principle}
 
-\section{Discussions}
+Communicating via 2.4GHz radio is widely used in many scenes, and controlling is one of them. The remote control sending instructions via an agreed frequency in 2.4GHz ISM, and the drone receive these instructions. In many types of drones, such as the Hanson H107 Drone we used in our experiment, the massage transmit via 2.4GHz radio broadcasts to anyone that can receive it, which means there isn't any connection between remote control and the drone. Not to mention identity verification. Because of the broadcast mechanism and connectionless transmission without identifications, this is a primitive way of control, which is easy to attack. The attack model is shown in Figure\ref{radio}.
 
-gugugu
+\begin{figure}
+\centering
+\label{radio}
+\epsfig{file=figures/radio.png, height=2.2in, width=2.3in}
+\caption{Radio Attack Model}
+\end{figure}
+
+\subsection{Attack}
+
+Since this drone use broadcast to pass signals. There’s no connection mechanism between controller and drone and it does not use a mechanism to verify the controller, the attack on this drone is relatively simple. We can use the LimeSDR device to attack the drone. Firstly, we can set up the attack environment on the PC with LimeSDR, gqrx and GNURadio, and then monitor the radio signal in GNURadio. The running drone can simultaneously monitor the radio signal at 2.4GHz and receive it. To a specific broadcast band signal, the corresponding command can be obtained by decoding.
+
+\subsection{Result}
+
+Since the drone does not have a mechanism to establish a connection. We can't get his full control, all we can do is interfere with the controller's control, making it insensitive or ineffective. The easiest way is to replay the attack and resend the received signal after a period of time. At this point, the signal from LimeSDR will cause the drone to get out of control or even fall.
 
 
 \section{Conclusions}
