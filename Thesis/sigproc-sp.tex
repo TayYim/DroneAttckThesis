@@ -74,10 +74,10 @@
 % 1st. author
 \alignauthor
 Yan Songyang\\
-       \affaddr{Institute for Clarity in Documentation}\\
+       \affaddr{Xi'an Jiaotong University}\\
        \affaddr{1932 Wallamaloo Lane}\\
        \affaddr{Wallamaloo, New Zealand}\\
-       \email{trovato@corporation.com}
+       \email{lapalacayim@gmail.com}
 % 2nd. author
 \alignauthor
 Li Siyu\\
@@ -137,25 +137,58 @@ We focus on radio and Wi-Fi
 
 \section{Attack on the AR.Drone 2.0}
 \subsection{Technical Specification}
-The AR.Drone 2.0 uses an OMAP 3630 CPU. This processor is based upon a 32 bit ARM Cortex A8 and runs with 1 GHz, it also uses a PowerVR SGX530 GPU with a frequency of 800 MHz on the System on a Chip (SoC) constructed by Texas Instruments. \cite{hackingAndSecuring,analysisAndAttack}
+The AR.Drone 2.0, equipped with various sensors, uses a Linux operating system based on the kernel version 2.6.27.44. All control commands, telemetry data and the video streams are handled via (unencrypted) 2.4GHz WLAN communication with the controlling device. Users can use iOS and Android devices to control the drone via the official application AR.FreeFlight. Figure ~\ref{iPad} shows the controller interface running on iPad.
 
-Parrot AR.FreeFlight control interface with two control buttons and a take off button for starting or landing the drone(Graph)
+\begin{figure}
+\centering
+\label{iPad}
+\epsfig{file=figures/iPad.PNG, height=1.2in, width=1.8in}
+\caption{Parrot AR.FreeFlight control interface}
+\end{figure}
 
-\subsection{Interception of video signals}
-Port,format,how
 
 \subsection{Highjack Attack}
 
 \subsubsection{AT Commands}
-The fact that the port 5556 (ATCMD) uses UDP and is therefore not a stable connection like TCP, a system with ascending sequence numbers has been selected for the commands. This prevents older commands with lower sequence numbers incoming later (due to transmission errors) from executing. 
+According to AR.Drone Developer Guide\cite{dev:guide}, the controller uses port 5556 to send commands in a UDP packet to port 5556 of the drone. These commands are called AT commands. Because of the instability of UDP connection, the communication protocol allocates ascending sequence number to different commands. This prevents older commands with lower sequence numbers incoming later (due to transmission errors) from executing\cite{hack:secure}. This protocol provides an attack method. Attacker can conduct a man-in-the-middle attack with a sequence number which is always higher than the one being sent from the legitimate user.
+
+An AT command begins with the fixed string "AT*", followed by either REF, PCMD or CONFIG. REF commands are single commands such as land or takeoff. PCMD commands are used for flight control. CONFIG commands are used for sending new configuration. To take over a drone, using REF commands is enough. As described in\cite{dev:guide}, the format command of REF command is 
+
+\begin{equation}
+  AT*REF=<sequence>,<UI>
+\end{equation}
+
+
+Different REF commands are listed in table ~\ref{refcom}.
+
+\begin{table}
+\centering
+\caption{REF commands}
+\label{refcom}
+\begin{tabular}{@{}ll@{}} \hline
+Command                                            & Function       \\ \hline
+AT\*REF=\textless{}sequence\textgreater{},290718208 & Take off       \\ \hline
+AT\*REF=\textless{}sequence\textgreater{},290717696 & Land           \\ \hline
+AT\*REF=\textless{}sequence\textgreater{},290717952 & Emergency Stop \\ \hline
+\end{tabular}
+\end{table}
+
 
 \subsubsection{Attack Process}
 
-1. Connect
+The attack consists of the following phases:
 
-2. Sniff
+\begin{enumerate}
+  \item Connection to the drone,
+  \item Determination of the IP address of the control device,
+  \item Sending fake land packets with high sequence number.
+\end{enumerate}
 
-3. Send packet
+After booting up, the drone will set up a Wi-Fi hotspot named "ardrone2\_" followed by a random number with 6 digits. The connection to the drone is possible because the network is not protected by any encryption or other access restriction techniques. The ip address of the drone itself is always 192.168.1.1/24.
+
+Once the connection has been built, attacker can scan the subnetwork to determine the IP address of the control device.
+
+To prevent multiple phones trying to control the drone, the drone only accepts packets from the source IP of the controller. But since it's UDP, it's simple to spoof the IP address of the controller. Attacker can send a land command to force the drone to come to the ground.\cite{drone:python}
 
 \subsubsection{Using Android Device to Conduct Attack}
 
