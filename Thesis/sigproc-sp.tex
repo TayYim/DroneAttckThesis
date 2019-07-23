@@ -130,7 +130,7 @@ Abstract here
   
  Within Wi-Fi connection, a drone is WLAN AP(Access Point) itself. If the user wants to control the drone, he needs to connect his smartphone(or other smart devices) with control application to the WLAN created by the drone. And there may be steps to authenticate during the connection establishment process. Then user’s smartphone could issue instructions to the drone and receive real-time image transmission from drone, after getting the Wi-Fi connection to the drone.
  
- And the other way of communication is using 2.4GHz radio. This is a much simpler communication mechanism, which means it has a lower cost and usually used on low-end drones. 2.4GHz radio technique is widely used in lots of remote controls, and remote control used in toys including drones is the one of the application scenarios. The remote control sending instructions via an agreed frequency in 2.4GHz ISM, and the drone receive these instructions. The massage transmit via 2.4GHz radio broadcasts to anyone that can receive it, which means there isn’t any connection between remote control and the drone. Not to mention identity verification. So this is a primitive way of control, which is easy to attack.
+ And the other way of communication is using 2.4GHz radio. This is a much simpler communication mechanism, which means it has a lower cost and usually used on low-end drones. 2.4GHz radio technique is widely used in lots of remote controls, and remote control used in toys including drones is the one of the application scenarios. The remote control sending instructions via an agreed frequency in 2.4GHz ISM, and the drone receive these instructions. The massage transmit via 2.4GHz radio broadcasts to anyone that can receive it, which means there isn't any connection between remote control and the drone. Not to mention identity verification. So this is a primitive way of control, which is easy to attack.
 
 \section{Attack on the AR.Drone 2.0}
 \subsection{Technical Specification}
@@ -138,21 +138,52 @@ The AR.Drone 2.0, equipped with various sensors, uses a Linux operating system b
 
 \begin{figure}
 \centering
-\label{iPad}
 \epsfig{file=figures/iPad.PNG, height=1.2in, width=1.8in}
 \caption{Parrot AR.FreeFlight control interface}
+\label{iPad}
+\end{figure}
+
+\subsection{Video Signal Interception}
+
+According to AR.Drone Developer Guide\cite{dev:guide}, AR.Drone 2.0 video stream is transmitted on TCP socket 5555. AR.Drone 2.0 will start sending frame immediately when a client connects to the socket. 
+
+For drones like JJRC-H37 produced by JIANJIAN TECHNOLOGY, they broadcast video signal to every client. Hence every device that connected to the drone can watch the video stream simultaneously. While AR.Drone 2.0 only sends video stream to the controller. To eavesdrop the video stream sent by AR.Drone 2.0, attacker can do as follows:
+
+\begin{enumerate}
+  \item Connection to the drone,
+  \item Determination of the IP address of the control device,
+  \item Using arp spoofing to intercept data,
+  \item Decode video stream.
+\end{enumerate}
+
+In this project, we use Ettercap\cite{ettercap} to conduct Man-In-The-Middle attack using arp poisoning. The drone's ip address is 192.168.1.1 and the controller's ip address is 192.168.1.2. The configuration of Ettercap is shown as figure~\ref{ettercap}.
+
+\begin{figure}
+\centering
+\epsfig{file=figures/ettercap.png, height=1.2in, width=1.8in}
+\caption{Ettercap Configuration}
+\label{ettercap}
+\end{figure}
+
+
+AR.Drone SDK 2 \cite{sdk} provides us a tool called ardrone\_navigation to decode video stream. It receives data stream from drone. The video module inside will decode the stream and show it in a seperated window. Figure~\ref{navigation} shows the user interface of ardrone\_navigation.
+
+\begin{figure}
+\centering
+\epsfig{file=figures/navigation.png, height=0.8in, width=2.4in}
+\caption{GUI of ardrone\_navigation}
+\label{navigation}
 \end{figure}
 
 
 \subsection{Highjack Attack}
 
 \subsubsection{AT Commands}
-According to AR.Drone Developer Guide\cite{dev:guide}, the controller uses port 5556 to send commands in a UDP packet to port 5556 of the drone. These commands are called AT commands. Because of the instability of UDP connection, the communication protocol allocates ascending sequence number to different commands. This prevents older commands with lower sequence numbers incoming later (due to transmission errors) from executing\cite{hack:secure}. This protocol provides an attack method. Attacker can conduct a man-in-the-middle attack with a sequence number which is always higher than the one being sent from the legitimate user.
+ The controller uses port 5556 to send commands in a UDP packet to port 5556 of the drone\cite{dev:guide}. These commands are called AT commands. Because of the instability of UDP connection, the communication protocol allocates ascending sequence number to different commands. This prevents older commands with lower sequence numbers incoming later (due to transmission errors) from executing\cite{hack:secure}. This protocol provides an attack method. Attacker can conduct a man-in-the-middle attack with a sequence number which is always higher than the one being sent from the legitimate user.
 
-An AT command begins with the fixed string "AT*", followed by either REF, PCMD or CONFIG. REF commands are single commands such as land or takeoff. PCMD commands are used for flight control. CONFIG commands are used for sending new configuration. To take over a drone, using REF commands is enough. As described in\cite{dev:guide}, the format command of REF command is 
-
+An AT command begins with the fixed string "AT*", followed by either REF, PCMD or CONFIG. REF commands are single commands such as land or takeoff. PCMD commands are used for flight control. CONFIG commands are used for sending new configuration. To take over a drone, using REF commands is enough. The format command of REF command is 
 \begin{equation}
-  AT*REF=<sequence>,<UI>
+  AT*REF=<sequence>,<UI>.
 \end{equation}
 
 
@@ -181,7 +212,7 @@ The attack consists of the following phases:
   \item Sending fake land packets with high sequence number.
 \end{enumerate}
 
-After booting up, the drone will set up a Wi-Fi hotspot named "ardrone2\_" followed by a random number with 6 digits. The connection to the drone is possible because the network is not protected by any encryption or other access restriction techniques. The ip address of the drone itself is always 192.168.1.1/24.
+After booting up, the drone will set up a Wi-Fi hotspot named "ardrone2\_" followed by a random number with 6 digits. The connection to the drone is possible because the network is not protected by any encryption or other access restriction techniques.
 
 Once the connection has been built, attacker can scan the subnetwork to determine the IP address of the control device.
 
@@ -191,13 +222,13 @@ To prevent multiple phones trying to control the drone, the drone only accepts p
 
 \subsubsection{Using Android Device to Conduct Attack}
 
-After the previous analysis, we have mastered the WIFI-controlled drone attack method and the whole process. The drone uses the application(FreeFlight 2.0) to control takeoff, landing, flight direction and capture image acquisition. We decided to create another Android application to attack this drone. Then this application can be controlled by a third party and take control of the drone, force the drone to land, and modify the flight direction.This attack scenario is shown in Figure\ref{hijack}.
+After the previous analysis, we have mastered the WIFI-controlled drone attack method and the whole process. The drone uses the application(FreeFlight 2.0) to control takeoff, landing, flight direction and capture image acquisition. We decided to create another Android application to attack this drone. Then this application can be controlled by a third party and take control of the drone, force the drone to land, and modify the flight direction.This attack scenario is shown in Figure~\ref{hijack}.
 
 \begin{figure}
 \centering
-\label{hijack}
 \epsfig{file=figures/Hijack.png, height=1.6in, width=2.5in}
 \caption{Hijack Attack Scenario}
+\label{hijack}
 \end{figure}
 
 The attack consists of the following phases:
@@ -215,13 +246,13 @@ The creation of this new Android app is primarily convenient for any third-party
 
 \subsection{Communication Principle}
 
-Communicating via 2.4GHz radio is widely used in many scenes, and controlling is one of them. The remote control sending instructions via an agreed frequency in 2.4GHz ISM, and the drone receive these instructions. In many types of drones, such as the Hanson H107 Drone we used in our experiment, the massage transmit via 2.4GHz radio broadcasts to anyone that can receive it, which means there isn't any connection between remote control and the drone. Not to mention identity verification. Because of the broadcast mechanism and connectionless transmission without identifications, this is a primitive way of control, which is easy to attack. The attack model is shown in Figure\ref{radio}.
+Communicating via 2.4GHz radio is widely used in many scenes, and controlling is one of them. The remote control sending instructions via an agreed frequency in 2.4GHz ISM, and the drone receive these instructions. In many types of drones, such as the Hanson H107 Drone we used in our experiment, the massage transmit via 2.4GHz radio broadcasts to anyone that can receive it, which means there isn't any connection between remote control and the drone. Not to mention identity verification. Because of the broadcast mechanism and connectionless transmission without identifications, this is a primitive way of control, which is easy to attack. The attack model is shown in Figure~\ref{radio}.
 
 \begin{figure}
 \centering
-\label{radio}
 \epsfig{file=figures/radio.png, height=2.2in, width=2.3in}
 \caption{Radio Attack Model}
+\label{radio}
 \end{figure}
 
 \subsection{Attack}
