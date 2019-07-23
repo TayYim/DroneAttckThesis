@@ -127,13 +127,16 @@ Abstract here
 \keywords{Drone, Remote Control} % NOT required for Proceedings
 
 \section{Introduction}
-What is UAV
 
-Many many
-
-Control methods
-
-We focus on radio and Wi-Fi
+ The drone, also known as the unmanned aerial vehicle(UAV), is the Aircraft without  any human pilot controlling inside. Drones are widely used in many fields, including military, industry, agriculture, photography and so on. We can simply divide them into civilian and military. 
+ 
+ The civilian drones, which we are focusing on, are applied to countless aspects of our lives.  Farmers use drones to spray pesticides and monitor crop's growth. E-commerce companies such as Amazon use drones to deliver express. Photographers use drones to create from a special perspective. And also people, just like us, using drones just for fun. All in all, the use of drones has penetrated into many aspect of our lives.
+ 
+  Quadcopter, one of the most common types of civilian drones, using Wi-Fi connection or 2.4GHz radio as its way of communication, generally. Some professional drone companies such as DJI may have their own private communication protocols and they are beyond our research.
+  
+ Within Wi-Fi connection, a drone is WLAN AP(Access Point) itself. If the user wants to control the drone, he needs to connect his smartphone(or other smart devices) with control application to the WLAN created by the drone. And there may be steps to authenticate during the connection establishment process. Then user’s smartphone could issue instructions to the drone and receive real-time image transmission from drone, after getting the Wi-Fi connection to the drone.
+ 
+ And the other way of communication is using 2.4GHz radio. This is a much simpler communication mechanism, which means it has a lower cost and usually used on low-end drones. 2.4GHz radio technique is widely used in lots of remote controls, and remote control used in toys including drones is the one of the application scenarios. The remote control sending instructions via an agreed frequency in 2.4GHz ISM, and the drone receive these instructions. The massage transmit via 2.4GHz radio broadcasts to anyone that can receive it, which means there isn’t any connection between remote control and the drone. Not to mention identity verification. So this is a primitive way of control, which is easy to attack.
 
 \section{Attack on the AR.Drone 2.0}
 \subsection{Technical Specification}
