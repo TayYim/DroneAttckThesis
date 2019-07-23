@@ -193,8 +193,18 @@ To prevent multiple phones trying to control the drone, the drone only accepts p
 
 \subsubsection{Using Android Device to Conduct Attack}
 
-Design an Android App
+After the previous analysis, we have mastered the WIFI-controlled drone attack method and the whole process. The drone uses the application(FreeFlight 2.0) to control takeoff, landing, flight direction and capture image acquisition. We decided to create another Android application to attack this drone. Then this application can be controlled by a third party and take control of the drone, force the drone to land, and modify the flight direction.
+
+The attack consists of the following phases:
+
+\begin{enumerate}
+  \item The third-party user uses the Android packet capture application to obtain the target drone IP address,
+  \item After the third-party user enters the obtained IP address in this application, he can click the button to send a command to control the drone.
+\end{enumerate}
 
+Jpcap provides a class JpcapSender for sending packets, which can be used to send IPPackets and its subclasses, including IPPacket, ICMPPacket, TCPPacket, UDPPacket\cite{jpcap}. After defining a corresponding package, we can use the SendPacket function to send packets. Meanwhile, Jpcap can be used to construct IP data packets to implement sending fake IP.
+
+The creation of this new Android app is primarily convenient for any third-party user who can hijack drones directly at the application layer.
 
 \section{Attack on hubsan blablabla}
 
