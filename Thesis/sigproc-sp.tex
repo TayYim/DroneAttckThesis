@@ -138,9 +138,22 @@ In this article we investigate the security problems of the Parrot AR.Drone 2.0 
  
  And the other way of communication is using 2.4GHz radio. This is a much simpler communication mechanism, which means it has a lower cost and usually used on low-end drones. 2.4GHz radio technique is widely used in lots of remote controls, and remote control used in toys including drones is the one of the application scenarios. The remote control sending instructions via an agreed frequency in 2.4GHz ISM, and the drone receive these instructions. The massage transmit via 2.4GHz radio broadcasts to anyone that can receive it, which means there isn't any connection between remote control and the drone. Not to mention identity verification. So this is a primitive way of control, which is easy to attack.
 
-\section{Attack on the AR.Drone 2.0}
+\section{Attack on the AR.Drone 2.0}
+
+In this section, we investigate the security vulnerabilities of AR.Drone 2.0 and conduct two attacks on the drone.
 \subsection{Technical Specification}
-The AR.Drone 2.0, equipped with various sensors, uses a Linux operating system based on the kernel version 2.6.27.44. All control commands, telemetry data and the video streams are handled via (unencrypted) 2.4GHz WLAN communication with the controlling device. Users can use iOS and Android devices to control the drone via the official application AR.FreeFlight. Figure ~\ref{iPad} shows the controller interface running on iPad.
+The specifications of the AR.Drone 2.0 are as follows:
+
+\begin{itemize}
+  \item Battery: 1500 mAH battery providing up to 36 minutes of flight time.
+  \item Weight: With Indoor frame: 420 gram, With outdoor frame: 380 gram.
+  \item Radio: Unencrypted 2.4 GHz Wi-Fi smartphone controlled.
+  \item A GPS module is available as an add on to the USB port of the drone to fly.
+  \item OS: BusyBox V1.14.0,  a Linux operating system based on the kernel version 2.6.27.44.
+pre-planned routes.
+\end{itemize}
+
+Users can use iOS and Android devices to control the drone via the official application AR.FreeFlight. Figure ~\ref{iPad} shows the controller interface running on iPad. 
 
 \begin{figure}
 \centering
@@ -148,6 +161,8 @@ The AR.Drone 2.0, equipped with various sensors, uses a Linux operating system b
 \caption{Parrot AR.FreeFlight control interface}
 \label{iPad}
 \end{figure}
+
+After scanning the open ports running on the drone, we found that it has open Telnet port with root access giving full access to the drone system. It is such a catastrophic vulnerability that the drone can be crashed by killing the jobs running on the Linux system. The exploitation of this vulnerability is stated in ~\cite{ana:attack}.
 
 \subsection{Video Signal Interception}
 
@@ -232,7 +247,7 @@ After the previous analysis, we have mastered the WIFI-controlled drone attack m
 
 \begin{figure}
 \centering
-\epsfig{file=figures/Hijack.png, height=1.6in, width=2.5in}
+\epsfig{file=figures/Hijack.png, height=1.5in, width=2.5in}
 \caption{Hijack Attack Scenario}
 \label{hijack}
 \end{figure}
@@ -246,13 +261,30 @@ The attack consists of the following phases:
 
 Jpcap provides a class JpcapSender for sending packets, which can be used to send IPPackets and its subclasses, including IPPacket, ICMPPacket, TCPPacket, UDPPacket\cite{jpcap}. After defining a corresponding package, we can use the SendPacket function to send packets. Meanwhile, Jpcap can be used to construct IP data packets to implement sending fake IP.
 
-The creation of this new Android app is primarily convenient for any third-party user who can hijack drones directly at the application layer.
+We try two ways to send UDP packets. A socket can successfully send a UDP packet with the correct source IP address, but an error will occur if the UDP packet sends the source IP address to another host. After reviewing the paper, we found that it was possible to send packets disguised as IP addresses using jpcap, but this approach failed on Android Studio.
 
 \section{Attack on Hubsan H107}
 
+ In this part of our experiment, we use SDR tools to analyze the 2.4GHz radio signal and carry out attack. We found some frequencies used by drone for communication, and recorded these control command signals, which was sent out again by SDR, achieving the effect of interfering with the normal flight of drone.
+ 
+\begin{figure}
+\centering
+\epsfig{file=figures/sniffTest.png, height=1in, width=1.5in}
+\caption{Sniffing Test}
+\label{sniff}
+\end{figure}
+
 \subsection{Communication Principle}
 
-Communicating via 2.4GHz radio is widely used in many scenes, and controlling is one of them. The remote control sending instructions via an agreed frequency in 2.4GHz ISM, and the drone receive these instructions. In many types of drones, such as the Hanson H107 Drone we used in our experiment, the message transmit via 2.4GHz radio broadcasts to anyone that can receive it, which means there isn't any connection between remote control and the drone. Not to mention identity verification. Because of the broadcast mechanism and connectionless transmission without identifications, this is a primitive way of control, which is easy to attack. The attack model is shown in Figure~\ref{radio}.
+Communicating via 2.4GHz radio is widely used in many scenes, and controlling is one of them. As shown in figure~\ref{gqrx}, we sniffing the radio signal and analyze the frequency used by the drone. The remote control sending instructions via a fixed frequency in a fixed area in 2419MHz - 2466MHz, and the drone receive these instructions. In many types of drones, such as the Hanson H107 Drone we used in our experiment, the message transmit via 2.4GHz radio broadcasts to anyone that can receive it, which means there isn't any connection between remote control and the drone. Not to mention identity verification. Because of the broadcast mechanism and connectionless transmission without identification, this is a primitive way of control, which is easy to attack. The attack model is shown in Figure~\ref{radio}.It is worth noting that after many experiments, we found that after each restart, the communication signal frequency will change in a specific area, there are eight fixed frequency bands. Therefore, we conclude that the drone and remote control first negotiate the frequency band with the drone before sending the flight control command to the remote control, and then only send the flight command to the drone in this frequency band.
+
+
+\begin{figure}
+\centering
+\epsfig{file=figures/gqrx.png, height=1.4in, width=1.6in}
+\caption{The command radio signal we detected}
+\label{gqrx}
+\end{figure}
 
 \begin{figure}
 \centering
@@ -263,11 +295,12 @@ Communicating via 2.4GHz radio is widely used in many scenes, and controlling is
 
 \subsection{Attack}
 
-Since this drone use broadcast to pass signals. There's no connection mechanism between controller and drone and it does not use a mechanism to verify the controller, the attack on this drone is relatively simple. We can use the LimeSDR device to attack the drone. Firstly, we can set up the attack environment on the PC with LimeSDR, gqrx and GNURadio, and then monitor the radio signal in GNURadio. The running drone can simultaneously monitor the radio signal at 2.4GHz and receive it. To a specific broadcast band signal, the corresponding command can be obtained by decoding.
+
+Since this drone use broadcast to pass signals. There's no connection mechanism between controller and drone and it does not use a mechanism to verify the controller, the attack on this drone is relatively simple. We can use the LimeSDR device to attack the drone. Firstly, we can set up the attack environment on the PC with LimeSDR, gqrx and GNURadio, and then monitor the radio signal in GNURadio. For the reason that the drone and remote control may randomly choose a frequency, to be as easy as possible, we can replay interference signal in all frequency band the drone and the remote control may use. And the running drone can simultaneously monitor the radio signal at 2.4GHz and receive them. Actually, there are two remote controls working at the same time - the real remote control and the LimeSDR, and both of them could be received by the drone. So, our interference signals will effectively affect the normal flight of the aircraft.
 
 \subsection{Result}
 
-Since the drone does not have a mechanism to establish a connection. We can't get his full control, all we can do is interfere with the controller's control, making it insensitive or ineffective. The easiest way is to replay the attack and resend the received signal after a period of time. At this point, the signal from LimeSDR will cause the drone to get out of control or even fall.
+Since the drone does not have a mechanism to establish a connection. We can't get his full control, all we can do is interfere with the controller's control, making it insensitive or ineffective. The easiest way is to replay the attack and resend the received signal after a period of time. At this point, the signal from LimeSDR will cause the drone to get out of control or even fall. 
 \section{Defense}
 
 The availability of inexpensive drones requires an analysis of potential security and safety threats for such devices. Potential consequences that might be caused by the usage of such drones could be damaging.
@@ -280,7 +313,7 @@ The approach offered by \cite{hack:secure} is that the drone is just a client an
 
 \begin{figure}
 \centering
-\epsfig{file=figures/telnet.png, height=1.2in, width=2.2in}
+\epsfig{file=figures/telnet.png, height=1.15in, width=2.1in}
 \caption{Telnet interface of AR.Drone 2.0}
 \label{telnet}
 \end{figure}
@@ -309,11 +342,22 @@ So that anyone who wants to control the drone need to connect to the "SafeAP" fi
 
 \subsection{Securing the Hubsan H107}
 
- Because of the simplistic communication mechanism, strengthening encryption is hard to do To defense against replay attack on Hubsan H107, the developers should configure a private protocol stack for their own products.
+Because of the simplistic communication mechanism, simply enforcing security is hard to do. To defense against replay attack on Hubsan H107, the developers need to define their own set of security protocols for their own products.
  
- To defend the MITM attacks, there needs to be an authentication mechanism before the remote control can connect to the drone. The drone should ask for a PIN from the remote control to establish the connection. So the drone can confirm that the instructions it received came from the correct remote control.
- 
-  To defend the  replay attacks, there should be a sequence number mechanism. The drone will check the serial number of the data it receives. If it receives a command signal with a wrong sequence number, it will ignore this instruction. So that the drone will not be interfered with by the replay attack's instructions.
+ To defend the MITM attacks, there needs to be an authentication mechanism before the remote control can connect to the drone. The drone should ask for an identification from the remote control to establish the connection. So the drone can confirm that the instructions it received came from the correct remote control. And for this authentication mechanism, we can determine the correct remote control by the specific negotiation method. For example, we can determine the remote control through a protocol like the challenge response protocol. As shown in figure~\ref{protocol} :challenge response protocol.The drone and the controller negotiated a password in advance. Firstly, the controller first sends a connection request to the drone. After receiving the connection request, the drone randomly generates a value n and sends the value n to the controller. The controller encode the n by using password. The result c1 will be returned, the drone locally encrypts n with the key to obtain the result c2, and the drone compares c1 and c2. If the two are equal, the controller is an authorized controller. Since n is randomized each time, even if there is a man in the middle, it will not cause any disadvantage to the security of the protocol.
+
+\begin{figure}
+\centering
+\epsfig{file=figures/protocol.png, height=2in, width=2in}
+\caption{Challenge Response Protocol}
+\label{protocol}
+\end{figure}
+
+To defend the  replay attacks, there should be a sequence number mechanism. The drone will check the serial number of the data it receives. If it receives a command signal with a wrong sequence number, it will ignore this instruction. So that the drone will not be interfered with by the replay attack's instructions.
+
+And we can get some inspiration in the specifications of military radios. In the Hubsan drone, the radio frequency used for communication will be appointed before the remote control begin sending command signal, which is selected from 
+
+about 10 alternative frequencies. It isn't completely fixed, which is good for security, but not enough. The alternative frequencies are too few so that we could conduct our replay attack at every possible frequency, and it works. So, if the drone has a larger number of alternative frequencies, or just use the randomly selected frequency, it will be very hard to attack in this way.
 
 \section{Conclusions}
 
