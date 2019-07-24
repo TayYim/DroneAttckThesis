@@ -309,7 +309,11 @@ So that anyone who wants to control the drone need to connect to the "SafeAP" fi
 
 \subsection{Securing the Hubsan H107}
 
-To defense against replay attack on Hubsan H107, the developers should configure the protocol stack so that it will check the serial number of the data it receives \upcite{radio:defense}. 
+ Because of the simplistic communication mechanism, strengthening encryption is hard to do To defense against replay attack on Hubsan H107, the developers should configure a private protocol stack for their own products.
+ 
+ To defend the MITM attacks, there needs to be an authentication mechanism before the remote control can connect to the drone. The drone should ask for a PIN from the remote control to establish the connection. So the drone can confirm that the instructions it received came from the correct remote control.
+ 
+  To defend the  replay attacks, there should be a sequence number mechanism. The drone will check the serial number of the data it receives. If it receives a command signal with a wrong sequence number, it will ignore this instruction. So that the drone will not be interfered with by the replay attack's instructions.
 
 \section{Conclusions}
 
@@ -327,6 +331,7 @@ To prevent the two drones from being attacked, we offered some approaches to sec
 \section{Acknowledgments}
 
 We would like to offer our sincere appreciation and thanks to Professor Hugh Anderson for his guidance, enthusiasm and encouragement during the project. He is always generous in providing all kinds of equipment we might need and we are equally grateful to the School of Computing for this. And we also thank our teaching assistant Tan Wang Leng for his insight and expertise. Without them, we wouldn't have gone thus far.
+
 
 %
 % The following two commands are all you need in the
