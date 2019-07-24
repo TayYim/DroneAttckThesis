@@ -28,6 +28,8 @@
 
 \documentclass{acm_proc_article-sp}
 
+\newcommand{\upcite}[1]{\textsuperscript{\textsuperscript{\cite{#1}}}}
+
 \begin{document}
 
 \title{Attack On Drones}
@@ -109,26 +111,30 @@ Li Siyu\\
 
 \maketitle
 \begin{abstract}
-Abstract here
+In this article we investigate the security problems of the Parrot AR.Drone 2.0 and Hubsan H107 quadcopters. We will set focus mainly on obvious security vulnerabilities in the Wi-Fi and 2.4GHz radio connection. We will show how to eavesdrop video streams of the AR.Drones and take over it's control using Man-In-The-Middle attack. We will illustrate the approach of radio replay attack on the Hubsan H107. Besides the realization of attacks, we put forward some suggestions on how the drones could be secured from unauthorized access.
 \end{abstract}
 
 % A category with the (minimum) three required fields
 \category{H.4}{Input/Output and Data Communications}{Data Communication Devices}
 
 
-\terms{Theory}
+%\terms{Theory}
 
-\keywords{Drone, Remote Control} % NOT required for Proceedings
+\keywords{Drone, Remote Control, Man-In-The-Middle, Replay Attack} % NOT required for Proceedings
 
 \section{Introduction}
 
  The drone, also known as the unmanned aerial vehicle(UAV), is the Aircraft without  any human pilot controlling inside. Drones are widely used in many fields, including military, industry, agriculture, photography and so on. We can simply divide them into civilian and military. 
  
+ 
  The civilian drones, which we are focusing on, are applied to countless aspects of our lives.  Farmers use drones to spray pesticides and monitor crop's growth. E-commerce companies such as Amazon use drones to deliver express. Photographers use drones to create from a special perspective. And also people, just like us, using drones just for fun. All in all, the use of drones has penetrated into many aspect of our lives.
+ 
  
   Quadcopter, one of the most common types of civilian drones, using Wi-Fi connection or 2.4GHz radio as its way of communication, generally. Some professional drone companies such as DJI may have their own private communication protocols and they are beyond our research.
   
- Within Wi-Fi connection, a drone is WLAN AP(Access Point) itself. If the user wants to control the drone, he needs to connect his smartphone(or other smart devices) with control application to the WLAN created by the drone. And there may be steps to authenticate during the connection establishment process. Then user’s smartphone could issue instructions to the drone and receive real-time image transmission from drone, after getting the Wi-Fi connection to the drone.
+  
+ Within Wi-Fi connection, a drone is WLAN AP(Access Point) itself. If the user wants to control the drone, he needs to connect his smartphone(or other smart devices) with control application to the WLAN created by the drone. And there may be steps to authenticate during the connection establishment process. Then user's smartphone could issue instructions to the drone and receive real-time image transmission from drone, after getting the Wi-Fi connection to the drone.
+ 
  
  And the other way of communication is using 2.4GHz radio. This is a much simpler communication mechanism, which means it has a lower cost and usually used on low-end drones. 2.4GHz radio technique is widely used in lots of remote controls, and remote control used in toys including drones is the one of the application scenarios. The remote control sending instructions via an agreed frequency in 2.4GHz ISM, and the drone receive these instructions. The massage transmit via 2.4GHz radio broadcasts to anyone that can receive it, which means there isn't any connection between remote control and the drone. Not to mention identity verification. So this is a primitive way of control, which is easy to attack.
 
@@ -145,7 +151,7 @@ The AR.Drone 2.0, equipped with various sensors, uses a Linux operating system b
 
 \subsection{Video Signal Interception}
 
-According to AR.Drone Developer Guide\cite{dev:guide}, AR.Drone 2.0 video stream is transmitted on TCP socket 5555. AR.Drone 2.0 will start sending frame immediately when a client connects to the socket. 
+According to AR.Drone Developer Guide\upcite{dev:guide}, AR.Drone 2.0 video stream is transmitted on TCP socket 5555. AR.Drone 2.0 will start sending frame immediately when a client connects to the socket. 
 
 For drones like JJRC-H37 produced by JIANJIAN TECHNOLOGY, they broadcast video signal to every client. Hence every device that connected to the drone can watch the video stream simultaneously. While AR.Drone 2.0 only sends video stream to the controller. To eavesdrop the video stream sent by AR.Drone 2.0, attacker can do as follows:
 
@@ -156,7 +162,7 @@ For drones like JJRC-H37 produced by JIANJIAN TECHNOLOGY, they broadcast video s
   \item Decode video stream.
 \end{enumerate}
 
-In this project, we use Ettercap\cite{ettercap} to conduct Man-In-The-Middle attack using arp poisoning. The drone's ip address is 192.168.1.1 and the controller's ip address is 192.168.1.2. The configuration of Ettercap is shown as figure~\ref{ettercap}.
+In this project, we use Ettercap\upcite{ettercap} to conduct Man-In-The-Middle attack using arp poisoning. The drone's ip address is 192.168.1.1 and the controller's ip address is 192.168.1.2. The configuration of Ettercap is shown as figure~\ref{ettercap}.
 
 \begin{figure}
 \centering
@@ -166,7 +172,7 @@ In this project, we use Ettercap\cite{ettercap} to conduct Man-In-The-Middle att
 \end{figure}
 
 
-AR.Drone SDK 2 \cite{sdk} provides us a tool called ardrone\_navigation to decode video stream. It receives data stream from drone. The video module inside will decode the stream and show it in a seperated window. Figure~\ref{navigation} shows the user interface of ardrone\_navigation.
+AR.Drone SDK 2 \upcite{sdk} provides us a tool called ardrone\_navigation to decode video stream. It receives data stream from drone. The video module inside will decode the stream and show it in a seperated window. Figure~\ref{navigation} shows the user interface of ardrone\_navigation.
 
 \begin{figure}
 \centering
@@ -179,7 +185,7 @@ AR.Drone SDK 2 \cite{sdk} provides us a tool called ardrone\_navigation to decod
 \subsection{Highjack Attack}
 
 \subsubsection{AT Commands}
- The controller uses port 5556 to send commands in a UDP packet to port 5556 of the drone\cite{dev:guide}. These commands are called AT commands. Because of the instability of UDP connection, the communication protocol allocates ascending sequence number to different commands. This prevents older commands with lower sequence numbers incoming later (due to transmission errors) from executing\cite{hack:secure}. This protocol provides an attack method. Attacker can conduct a man-in-the-middle attack with a sequence number which is always higher than the one being sent from the legitimate user.
+ The controller uses port 5556 to send commands in a UDP packet to port 5556 of the drone\upcite{dev:guide}. These commands are called AT commands. Because of the instability of UDP connection, the communication protocol allocates ascending sequence number to different commands. This prevents older commands with lower sequence numbers incoming later (due to transmission errors) from executing\upcite{hack:secure}. This protocol provides an attack method. Attacker can conduct a man-in-the-middle attack with a sequence number which is always higher than the one being sent from the legitimate user.
 
 An AT command begins with the fixed string "AT*", followed by either REF, PCMD or CONFIG. REF commands are single commands such as land or takeoff. PCMD commands are used for flight control. CONFIG commands are used for sending new configuration. To take over a drone, using REF commands is enough. The format command of REF command is 
 \begin{equation}
@@ -216,7 +222,7 @@ After booting up, the drone will set up a Wi-Fi hotspot named "ardrone2\_" follo
 
 Once the connection has been built, attacker can scan the subnetwork to determine the IP address of the control device.
 
-To prevent multiple phones trying to control the drone, the drone only accepts packets from the source IP of the controller. But since it's UDP, it's simple to spoof the IP address of the controller. Attacker can send a land command to force the drone to come to the ground.\cite{drone:python} 
+To prevent multiple phones trying to control the drone, the drone only accepts packets from the source IP of the controller. But since it's UDP, it's simple to spoof the IP address of the controller. Attacker can send a land command to force the drone to come to the ground\upcite{drone:python} .
 
 
 
@@ -246,7 +252,7 @@ The creation of this new Android app is primarily convenient for any third-party
 
 \subsection{Communication Principle}
 
-Communicating via 2.4GHz radio is widely used in many scenes, and controlling is one of them. The remote control sending instructions via an agreed frequency in 2.4GHz ISM, and the drone receive these instructions. In many types of drones, such as the Hanson H107 Drone we used in our experiment, the massage transmit via 2.4GHz radio broadcasts to anyone that can receive it, which means there isn't any connection between remote control and the drone. Not to mention identity verification. Because of the broadcast mechanism and connectionless transmission without identifications, this is a primitive way of control, which is easy to attack. The attack model is shown in Figure~\ref{radio}.
+Communicating via 2.4GHz radio is widely used in many scenes, and controlling is one of them. The remote control sending instructions via an agreed frequency in 2.4GHz ISM, and the drone receive these instructions. In many types of drones, such as the Hanson H107 Drone we used in our experiment, the message transmit via 2.4GHz radio broadcasts to anyone that can receive it, which means there isn't any connection between remote control and the drone. Not to mention identity verification. Because of the broadcast mechanism and connectionless transmission without identifications, this is a primitive way of control, which is easy to attack. The attack model is shown in Figure~\ref{radio}.
 
 \begin{figure}
 \centering
@@ -262,11 +268,23 @@ Since this drone use broadcast to pass signals. There's no connection mechanism 
 \subsection{Result}
 
 Since the drone does not have a mechanism to establish a connection. We can't get his full control, all we can do is interfere with the controller's control, making it insensitive or ineffective. The easiest way is to replay the attack and resend the received signal after a period of time. At this point, the signal from LimeSDR will cause the drone to get out of control or even fall.
+\section{Defense}
 
+The availability of inexpensive drones requires an analysis of potential security and safety threats for such devices. Potential consequences that might be caused by the usage of such drones could be damaging.
+
+To secure the AR.Drone, an encrypted Wi-Fi connection should be adopted. If the attacker fails to join the network hosted by the drone, attacks mentioned above are impossible. Furthermore, as provided in \cite{hack:secure}, developers can crosscompile patch programs to secure the Wi-Fi connection in a more reliable way.
+
+To defense against replay attack on Hubsan H107, the developers should configure the protocol stack so that it will check the serial number of the data it receives \upcite{radio:defense}. 
 
 \section{Conclusions}
 
-We..... and....., however... it's..... great!
+We have attacked AR.Drone 2.0 and Hubsan H107, using Wi-Fi drone and 2.4GHz radio respectively. 
+
+For the AR.Drone, we can intercept its video signal and seize the control of the drone completely, by sending command messages with a larger sequence number. 
+
+As for the drone controlled by 2.4GHz radio, we have found its communication frequency. We can interfere with the normal flight of the drone by sending command signal which we have recorded. Because of the radio broadcast mechanism, we can't block the original radio signal completely, so we just interfere it.
+
+To prevent the two drones from being attacked, we offered some approaches to securing Wi-Fi and radio connection.
 
 %\end{document}  % This is where a 'short' article might terminate
 
