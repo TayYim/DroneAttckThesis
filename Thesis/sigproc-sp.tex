@@ -272,7 +272,42 @@ Since the drone does not have a mechanism to establish a connection. We can't ge
 
 The availability of inexpensive drones requires an analysis of potential security and safety threats for such devices. Potential consequences that might be caused by the usage of such drones could be damaging.
 
-To secure the AR.Drone, an encrypted Wi-Fi connection should be adopted. If the attacker fails to join the network hosted by the drone, attacks mentioned above are impossible. Furthermore, as provided in \cite{hack:secure}, developers can crosscompile patch programs to secure the Wi-Fi connection in a more reliable way.
+\subsection{Securing the AR.DRONE 2.0}
+
+To secure the AR.Drone, an encrypted Wi-Fi connection should be adopted. If the attacker fails to join the network hosted by the drone, attacks mentioned above are impossible.
+
+The approach offered by \cite{hack:secure} is that the drone is just a client and the control device acts as the access point. Users can crosscompile a tool that supports WPA and WPA2 to run on the ARM architecture. Since the drone has a open telnet port with root access, as shown in figure~\ref{telnet}, users can configure the network settings directly. 
+
+\begin{figure}
+\centering
+\epsfig{file=figures/telnet.png, height=1.2in, width=2.2in}
+\caption{Telnet interface of AR.Drone 2.0}
+\label{telnet}
+\end{figure}
+
+
+Given that we have a Wi-Fi Access Point which has authentication manchenism. Its SSID is "SafeAP", the password is "Key2Safe" and its IP address is 192.168.0.1. Fist, let the drone connect to the AP:
+\begin{lstlisting}
+  iwconfig ath0 mode managed key Key2Safe essid SafeAP
+\end{lstlisting}
+
+Then set its ip address as 192.168.0.66 and configure the gateway:
+
+\begin{lstlisting}
+ifconfig ath0 192.168.0.66 netmask 255.255.255.0 up
+route add default gw 192.168.0.1
+\end{lstlisting}
+
+So that anyone who wants to control the drone need to connect to the "SafeAP" first. It protects the vulnerable from vicious connection. This scnario is shown in figure~\ref{client}.
+
+\begin{figure}
+\centering
+\epsfig{file=figures/droneClient.png, height=1.5in, width=2.4in}
+\caption{Drone works in Wi-Fi Infrastructure (Client) mode}
+\label{client}
+\end{figure}
+
+\subsection{Securing the Hubsan H107}
 
 To defense against replay attack on Hubsan H107, the developers should configure the protocol stack so that it will check the serial number of the data it receives \upcite{radio:defense}. 
 
