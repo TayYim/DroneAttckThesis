@@ -267,23 +267,16 @@ We try two ways to send UDP packets. A socket can successfully send a UDP packet
 
  In this part of our experiment, we use SDR tools to analyze the 2.4GHz radio signal and carry out attack. We found some frequencies used by drone for communication, and recorded these control command signals, which was sent out again by SDR, achieving the effect of interfering with the normal flight of drone.
  
-\begin{figure}
-\centering
-\epsfig{file=figures/sniffTest.png, height=1in, width=1.5in}
-\caption{Sniffing Test}
-\label{sniff}
-\end{figure}
 
 \subsection{Communication Principle}
 
-Communicating via 2.4GHz radio is widely used in many scenes, and controlling is one of them. As shown in figure~\ref{gqrx}, we sniffing the radio signal and analyze the frequency used by the drone. The remote control sending instructions via a fixed frequency in a fixed area in 2419MHz - 2466MHz, and the drone receive these instructions. In many types of drones, such as the Hanson H107 Drone we used in our experiment, the message transmit via 2.4GHz radio broadcasts to anyone that can receive it, which means there isn't any connection between remote control and the drone. Not to mention identity verification. Because of the broadcast mechanism and connectionless transmission without identification, this is a primitive way of control, which is easy to attack. The attack model is shown in Figure~\ref{radio}.It is worth noting that after many experiments, we found that after each restart, the communication signal frequency will change in a specific area, there are eight fixed frequency bands. Therefore, we conclude that the drone and remote control first negotiate the frequency band with the drone before sending the flight control command to the remote control, and then only send the flight command to the drone in this frequency band.
-
+Communicating via 2.4GHz radio is widely used in many scenes, and controlling is one of them. As shown in figure~\ref{sniff}, we sniffing the radio signal and analyze the frequency used by the drone. The remote control sending instructions via a fixed frequency in a fixed area in 2419MHz - 2466MHz, and the drone receive these instructions. In many types of drones, such as the Hanson H107 Drone we used in our experiment, the message transmit via 2.4GHz radio broadcasts to anyone that can receive it, which means there isn't any connection between remote control and the drone. Not to mention identity verification. Because of the broadcast mechanism and connectionless transmission without identification, this is a primitive way of control, which is easy to attack. The attack model is shown in Figure~\ref{radio}.It is worth noting that after many experiments, we found that after each restart, the communication signal frequency will change in a specific area, there are eight fixed frequency bands. Therefore, we conclude that the drone and remote control first negotiate the frequency band with the drone before sending the flight control command to the remote control, and then only send the flight command to the drone in this frequency band.
 
 \begin{figure}
 \centering
-\epsfig{file=figures/gqrx.png, height=1.4in, width=1.6in}
-\caption{The command radio signal we detected}
-\label{gqrx}
+\epsfig{file=figures/sniffTest.png, height=1.3in, width=1.8in}
+\caption{Sniffing Test}
+\label{sniff}
 \end{figure}
 
 \begin{figure}
